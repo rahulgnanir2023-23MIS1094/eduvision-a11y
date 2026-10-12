@@ -24,7 +24,6 @@ export default function KeyboardShortcuts() {
     toggleReducedMotion,
     increaseFontSize,
     decreaseFontSize,
-    isHighContrast,
   } = useAccessibility();
 
   useEffect(() => {

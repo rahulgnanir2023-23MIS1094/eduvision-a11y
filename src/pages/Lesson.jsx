@@ -7,20 +7,17 @@ import {
   VolumeX,
   ChevronLeft,
   Maximize,
-  Clock,
   BookOpen,
   AudioLines,
-  RotateCcw,
   FastForward,
   Rewind,
   Search,
   Sparkles,
   HelpCircle,
-  CheckCircle2,
-  Sliders,
 } from 'lucide-react';
 import { courses, lessonTranscript } from '../data/mockData';
 import { useAccessibility } from '../context/AccessibilityContext';
+import OfflineBadge from '../components/OfflineBadge';
 
 function AudioWave({ isPlaying }) {
   return (
@@ -46,6 +43,7 @@ export default function Lesson() {
   const [transcriptSearch, setTranscriptSearch] = useState('');
   const [isTTSActive, setIsTTSActive] = useState(false);
   const [ttsRate, setTtsRate] = useState(1);
+  const [ttsNotice, setTtsNotice] = useState('');
   const [showCognitiveSummary, setShowCognitiveSummary] = useState(true);
 
   const transcriptRef = useRef(null);
@@ -115,19 +113,66 @@ export default function Lesson() {
       return;
     }
 
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const currentText = lessonTranscript[activeTranscriptIndex]?.text || '';
-      const utterance = new SpeechSynthesisUtterance(currentText);
-      utterance.rate = ttsRate;
-      utterance.pitch = 1;
-      utterance.onend = () => setIsTTSActive(false);
-      utterance.onerror = () => setIsTTSActive(false);
+    if (!('speechSynthesis' in window)) {
+      const msg = 'Text-to-speech is not supported in this browser.';
+      setTtsNotice(msg);
+      announce(msg);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    const currentText = lessonTranscript[activeTranscriptIndex]?.text || '';
+    if (!currentText) return;
+
+    // Retrieve available speech voices
+    const voices = window.speechSynthesis.getVoices?.() || [];
+
+    // If offline and no local voices are detected
+    if (voices.length === 0 && !navigator.onLine) {
+      const msg = 'Speech voice unavailable offline. Transcripts remain fully readable.';
+      setTtsNotice(msg);
+      announce(msg);
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(currentText);
+
+    // Pick best voice (prioritize localService voice if offline)
+    if (voices.length > 0) {
+      const localVoice = voices.find((v) => v.localService && v.lang.startsWith('en')) ||
+                          voices.find((v) => v.localService) ||
+                          voices.find((v) => v.lang.startsWith('en')) ||
+                          voices[0];
+      if (localVoice) utterance.voice = localVoice;
+    }
+
+    utterance.rate = ttsRate;
+    utterance.pitch = 1;
+
+    utterance.onend = () => {
+      setIsTTSActive(false);
+    };
+
+    utterance.onerror = (e) => {
+      setIsTTSActive(false);
+      const isNetworkFail = !navigator.onLine || e.error === 'network' || e.error === 'synthesis-unavailable';
+      const msg = isNetworkFail
+        ? 'Speech synthesis voice requires an active internet connection. Offline lesson text remains available.'
+        : `Speech synthesis notice: ${e.error || 'stopped'}`;
+      setTtsNotice(msg);
+      announce(msg);
+    };
+
+    try {
       window.speechSynthesis.speak(utterance);
       setIsTTSActive(true);
+      setTtsNotice('');
       announce(`Reading timestamp ${lessonTranscript[activeTranscriptIndex]?.timestamp} aloud`);
-    } else {
-      alert('SpeechSynthesis API not available in this browser.');
+    } catch {
+      setIsTTSActive(false);
+      const msg = 'Speech synthesis could not start offline.';
+      setTtsNotice(msg);
+      announce(msg);
     }
   }, [isTTSActive, activeTranscriptIndex, ttsRate, announce]);
 
@@ -190,6 +235,7 @@ export default function Lesson() {
             >
               {course.category}
             </span>
+            <OfflineBadge />
             <span className="text-xs font-mono font-semibold" style={{ color: 'var(--text-muted)' }}>
               Lesson Duration: {course.duration}
             </span>
@@ -240,6 +286,29 @@ export default function Lesson() {
           </select>
         </div>
       </div>
+
+      {/* TTS Status Notice (graceful offline feedback) */}
+      {ttsNotice && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-semibold a11y-transition shadow-sm"
+          style={{
+            backgroundColor: isHighContrast ? '#000000' : '#fef3c7',
+            color: isHighContrast ? '#ffff00' : '#92400e',
+            border: isHighContrast ? '2px solid #ffff00' : '1px solid #fde68a',
+          }}
+        >
+          <span>{ttsNotice}</span>
+          <button
+            onClick={() => setTtsNotice('')}
+            className="ml-3 font-bold underline cursor-pointer text-xs"
+            aria-label="Dismiss speech notice"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* Main Grid: Video + Smart Transcript */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

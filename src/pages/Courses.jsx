@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Clock, Users, Play, TrendingUp } from 'lucide-react';
 import { courses } from '../data/mockData';
 import { useAccessibility } from '../context/AccessibilityContext';
+import OfflineBadge from '../components/OfflineBadge';
 
 export default function Courses() {
   const navigate = useNavigate();
@@ -55,6 +56,7 @@ export default function Courses() {
                   >
                     {course.category}
                   </span>
+                  <OfflineBadge />
                 </div>
                 <h3
                   className="text-lg font-bold mb-0.5"

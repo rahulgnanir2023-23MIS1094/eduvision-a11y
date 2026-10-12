@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Bell, User, X } from 'lucide-react';
 import { notifications, userProfile } from '../data/mockData';
+import ConnectionStatus from './ConnectionStatus';
 
 export default function Header() {
   const [showNotifications, setShowNotifications] = useState(false);
@@ -36,6 +37,9 @@ export default function Header() {
       </div>
 
       <div className="flex items-center gap-4">
+        {/* Offline-First Connection Status */}
+        <ConnectionStatus />
+
         {/* Notification Bell */}
         <div className="relative" ref={panelRef}>
           <button

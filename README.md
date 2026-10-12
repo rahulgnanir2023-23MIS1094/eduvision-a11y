@@ -77,8 +77,41 @@ Demonstrate any accessibility profile instantly by appending query parameters:
 * **Styling & Theming:** Tailwind CSS v4 + Dynamic CSS Custom Properties Engine
 * **Icons:** Lucide React
 * **Routing:** React Router v7
+* **PWA & Offline Engine:** Service Worker (Workbox / `vite-plugin-pwa`), Web App Manifest, Cache API
 * **Audio Synthesis:** Web Speech API (`SpeechSynthesis`)
 * **State Management:** React Context API (`AccessibilityContext`) + `localStorage` persistence
+
+---
+
+## 📶 Offline-First Architecture (PWA)
+
+EduVision is engineered with an **offline-first Progressive Web App (PWA)** architecture to guarantee educational access for learners in rural and Tier 2/3 regions facing intermittent or absent internet connectivity:
+
+### 1. How It Works
+* **Complete App Shell Precaching:** Service Worker precaches all critical UI bundles (HTML, CSS, JavaScript, icons, manifest, and OpenDyslexic font files).
+* **SPA Route Fallback:** All client-side React Router navigation endpoints (`/`, `/courses`, `/lesson/:id`, `/quiz/:id`, `/analytics`, `/accessibility`, `/settings`) automatically fallback to the cached application shell when offline.
+* **Stale-While-Revalidate Runtime Caching:** Same-origin static assets and images are delivered immediately from cache while quietly checking for upstream updates in the background.
+* **Local Font Packaging:** The **OpenDyslexic** typography files (`.woff2`) are bundled directly into the repository and precached locally, ensuring dyslexia formatting works flawlessly without any external CDN dependency.
+* **Synchronized Offline Data:** All lesson transcripts, formulas, cognitive summaries, and interactive quizzes are bundled directly into the client package, enabling uninterrupted studying offline.
+* **Accessible Connection Indicator:** The header features an accessible `ConnectionStatus` monitor that notifies users via dual visual cues and `aria-live` assertive speech when connection drops or resumes.
+* **Offline Badge:** Course and lesson views display a verified `Available offline` badge when the Service Worker is actively controlling the application cache.
+
+### 2. How to Test Offline Mode
+1. **Build and Preview the Production PWA:**
+   ```bash
+   npm run build
+   npm run preview
+   ```
+2. **Open in Browser:** Navigate to `http://localhost:4173/` (or the printed preview URL).
+3. **Inspect Service Worker:** Open DevTools (<kbd>F12</kbd>) → **Application** tab → **Service Workers**. Confirm the worker is **activated and running**.
+4. **Simulate Offline:**
+   - In DevTools → **Network** tab (or **Application** tab), check the **Offline** checkbox.
+   - Alternatively, turn off your system Wi-Fi / Ethernet adapter.
+5. **Test Complete Route Navigation:**
+   - Notice the connection pill switches to **Offline, lessons and settings still work**.
+   - Navigate freely between `/`, `/courses`, `/lesson/1`, `/quiz/1`, `/analytics`, `/accessibility`, and `/settings`.
+   - Reload any page (<kbd>Ctrl</kbd> + <kbd>R</kbd> / <kbd>F5</kbd>) while completely offline — the app instantly renders with 0 failed network requests!
+   - Toggle Dyslexia Mode (<kbd>Alt</kbd> + <kbd>D</kbd>) and High-Contrast Mode (<kbd>Alt</kbd> + <kbd>H</kbd>) — all settings persist and render offline.
 
 ---
 
@@ -92,7 +125,7 @@ Demonstrate any accessibility profile instantly by appending query parameters:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/<your-username>/eduvision-a11y.git
+git clone https://github.com/rahulgnanir2023-23MIS1094/eduvision-a11y.git
 cd eduvision-a11y
 
 # 2. Install dependencies
@@ -100,6 +133,10 @@ npm install
 
 # 3. Start the development server
 npm run dev
+
+# 4. Or build and test the offline-first PWA production build
+npm run build
+npm run preview
 ```
 
 Open [http://localhost:5173](http://localhost:5173) in your browser to experience EduVision.

@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* OpenDyslexic font — bundled locally via @fontsource for offline support.
+   Licensed under the Bitstream Vera License.
+   font-display: swap ensures text is visible while font loads. */
+@import "@fontsource/opendyslexic/400.css";
+@import "@fontsource/opendyslexic/700.css";
+
 /* ===== Accessibility Engine: Global CSS Variables ===== */
 :root {
   --font-primary: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Inter', Roboto, sans-serif;

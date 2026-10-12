@@ -8,8 +8,6 @@ import {
   Award,
   Users,
   Search,
-  Filter,
-  CheckCircle2,
   Sparkles,
   ArrowRight,
   Flame,
@@ -18,6 +16,7 @@ import {
 import { courses, userProfile } from '../data/mockData';
 import { useAccessibility } from '../context/AccessibilityContext';
 import StudyTimer from '../components/StudyTimer';
+import OfflineBadge from '../components/OfflineBadge';
 
 function StatCard({ icon: Icon, label, value, color, helper }) {
   return (
@@ -85,6 +84,7 @@ function CourseCard({ course, onResume, onQuiz }) {
             >
               {course.category}
             </span>
+            <OfflineBadge />
             <span className="text-xs font-mono font-semibold" style={{ color: 'var(--text-muted)' }}>
               {course.duration}
             </span>
